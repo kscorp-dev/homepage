@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>셀온 (SelOn) — 셀러들의 힘을 ON | KS Corporation</title>
+  <meta name="description" content="여러 쇼핑몰에 상품을 한 번에 등록하고 AI가 자동으로 관리해주는 올인원 셀러 솔루션." />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --sky1: #38bdf8; --sky2: #0ea5e9; --sky3: #0284c7; --sky4: #e0f4fe;
+      --dark: #0a1628; --dark2: #0f2044; --text: #0f2a3d; --muted: #5a7a92;
+      --shadow: 0 8px 40px rgba(14,165,233,0.13);
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Pretendard', -apple-system, sans-serif;
+      background: var(--sky4); color: var(--text); overflow-x: hidden;
+      -webkit-font-smoothing: antialiased; word-break: keep-all;
+    }
+
+
+    .logo-mark {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+      background: linear-gradient(135deg, #1e3a6e 0%, #2d5aa0 100%);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      font-size: 12px; font-weight: 900; color: white;
+      letter-spacing: -0.05em; position: relative; overflow: hidden;
+    }
+    .logo-mark::before {
+      content: ''; position: absolute;
+      width: 3px; height: 140%; background: rgba(255,255,255,0.9);
+      transform: rotate(-35deg) translateX(-6px); top: -20%; left: 30%;
+    }
+    .logo-mark::after {
+      content: ''; position: absolute;
+      width: 3px; height: 140%; background: rgba(255,255,255,0.55);
+      transform: rotate(-35deg) translateX(4px); top: -20%; left: 30%;
+    }
+    .logo-mark span { position: relative; z-index: 1; }
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 5vw;
+      background: rgba(10,22,40,0.85); backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(56,189,248,0.12);
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px; text-decoration: none;
+    }
+    .nav-logo img { height: 34px; width: 34px; border-radius: 8px; background: white; padding: 3px; }
+    .nav-logo span { font-size: 1rem; font-weight: 700; color: rgba(255,255,255,0.7); letter-spacing: -0.02em; }
+    .nav-logo span strong { color: var(--sky1); }
+    .nav-back {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.84rem; font-weight: 600; color: rgba(255,255,255,0.65);
+      text-decoration: none; transition: color 0.3s;
+    }
+    .nav-back:hover { color: var(--sky1); }
+
+    /* HERO */
+    #hero {
+      min-height: 100svh; display: flex; align-items: center;
+      justify-content: center; text-align: center;
+      padding: 110px 5vw 80px; position: relative; overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 55% at 50% 20%, rgba(125,211,252,0.35) 0%, transparent 65%),
+        linear-gradient(155deg, #0a1628 0%, #0f3460 45%, #0a7abf 75%, #38bdf8 100%);
+    }
+    .hero-grid {
+      position: absolute; inset: 0;
+      background-image: linear-gradient(rgba(56,189,248,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(56,189,248,0.05) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    .orb { position: absolute; border-radius: 50%; filter: blur(70px); animation: float 9s ease-in-out infinite; }
+    .o1 { width: 400px; height: 400px; background: rgba(56,189,248,0.15); top: -100px; right: -80px; }
+    .o2 { width: 280px; height: 280px; background: rgba(6,182,212,0.12); bottom: -60px; left: -60px; animation-delay: -4s; }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-28px)} }
+    .hero-content { position: relative; z-index: 2; max-width: 860px; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 7px 18px; border-radius: 50px; margin-bottom: 2rem;
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.22);
+      color: rgba(255,255,255,0.88); font-size: 0.8rem; font-weight: 600;
+      letter-spacing: 0.02em; backdrop-filter: blur(8px);
+    }
+    .badge-dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; animation: pulse 2s ease infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.5)} }
+    .hero-product-label {
+      font-size: clamp(0.85rem, 1.5vw, 0.95rem); font-weight: 700;
+      color: var(--sky1); letter-spacing: 0.14em; text-transform: uppercase;
+      margin-bottom: 1rem; display: block;
+    }
+    h1 {
+      font-size: clamp(2.8rem, 6vw, 5rem); font-weight: 900;
+      color: white; line-height: 1.08; letter-spacing: -0.04em;
+      margin-bottom: 1.2rem;
+    }
+    h1 em { font-style: normal; color: #7dd3fc; }
+    .hero-desc {
+      font-size: clamp(1rem, 2vw, 1.22rem); color: rgba(255,255,255,0.72);
+      line-height: 1.9; margin-bottom: 2.8rem; font-weight: 400;
+    }
+    .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn-white { padding: 15px 38px; border-radius: 50px; background: white; color: var(--sky3); font-weight: 700; font-size: 0.95rem; text-decoration: none; transition: all 0.3s; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+    .btn-white:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(56,189,248,0.4); }
+    .btn-outline { padding: 15px 38px; border-radius: 50px; background: transparent; color: white; border: 1.5px solid rgba(255,255,255,0.4); font-weight: 500; font-size: 0.95rem; text-decoration: none; transition: all 0.3s; }
+    .btn-outline:hover { background: rgba(255,255,255,0.1); }
+
+    /* SECTIONS */
+    section { padding: clamp(70px,9vw,120px) 5vw; }
+    .section-label {
+      display: inline-block; padding: 4px 14px; border-radius: 50px;
+      background: rgba(14,165,233,0.1); color: var(--sky2);
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.15em;
+      text-transform: uppercase; margin-bottom: 1.1rem;
+    }
+    .section-title {
+      font-size: clamp(1.8rem, 3.8vw, 2.9rem); font-weight: 800;
+      line-height: 1.2; letter-spacing: -0.035em; color: var(--text);
+      margin-bottom: 1rem;
+    }
+    .section-desc {
+      font-size: clamp(0.92rem, 1.6vw, 1.04rem); color: var(--muted);
+      line-height: 1.92; max-width: 560px; font-weight: 400;
+    }
+
+    /* PROBLEM */
+    #problem { background: white; }
+    .problem-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.2rem; max-width: 1100px; margin: 3rem auto 0;
+    }
+    .problem-card {
+      background: #fff8f8; border: 1px solid rgba(239,68,68,0.12);
+      border-radius: 18px; padding: 1.8rem 1.6rem;
+    }
+    .problem-icon { font-size: 1.8rem; margin-bottom: 0.8rem; }
+    .problem-title { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem; }
+    .problem-desc { font-size: 0.86rem; color: var(--muted); line-height: 1.82; }
+
+    /* SOLUTION */
+    #solution { background: var(--sky4); }
+    .solution-header { text-align: center; max-width: 700px; margin: 0 auto 3.5rem; }
+    .solution-header .section-desc { margin: 0 auto; }
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.4rem; max-width: 1100px; margin: 0 auto;
+    }
+    .feature-card {
+      background: white; border-radius: 20px; padding: 2rem 1.8rem;
+      border: 1px solid rgba(56,189,248,0.13);
+      box-shadow: var(--shadow); transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .feature-card:hover { transform: translateY(-6px); box-shadow: 0 16px 50px rgba(14,165,233,0.18); }
+    .feature-icon {
+      width: 52px; height: 52px; border-radius: 14px; margin-bottom: 1.2rem;
+      background: linear-gradient(135deg, var(--sky1), var(--sky3));
+      display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+    }
+    .feature-title { font-size: 1rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; margin-bottom: 0.6rem; }
+    .feature-desc { font-size: 0.86rem; color: var(--muted); line-height: 1.85; }
+
+    /* HOW IT WORKS */
+    #how { background: white; }
+    .how-header { text-align: center; max-width: 600px; margin: 0 auto 3.5rem; }
+    .steps {
+      display: flex; gap: 0; max-width: 1000px; margin: 0 auto;
+      position: relative;
+    }
+    .steps::before {
+      content: ''; position: absolute; top: 36px; left: 10%; right: 10%;
+      height: 2px; background: linear-gradient(90deg, var(--sky2), rgba(56,189,248,0.2));
+    }
+    .step { flex: 1; text-align: center; padding: 0 1rem; position: relative; }
+    .step-num {
+      width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 1.4rem;
+      background: linear-gradient(135deg, var(--sky1), var(--sky3));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; position: relative; z-index: 1;
+      box-shadow: 0 4px 18px rgba(14,165,233,0.3);
+    }
+    .step-title { font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+    .step-desc { font-size: 0.83rem; color: var(--muted); line-height: 1.8; }
+
+    /* PRICING */
+    #pricing { background: var(--sky4); }
+    .pricing-header { text-align: center; max-width: 600px; margin: 0 auto 3.5rem; }
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem; max-width: 960px; margin: 0 auto;
+    }
+    .price-card {
+      background: white; border-radius: 24px; padding: 2.4rem 2rem;
+      border: 1.5px solid rgba(56,189,248,0.15);
+      box-shadow: var(--shadow); text-align: center; transition: transform 0.3s;
+    }
+    .price-card:hover { transform: translateY(-6px); }
+    .price-card.featured {
+      background: linear-gradient(140deg, #0f3460, #0a7abf);
+      border-color: transparent;
+    }
+    .price-plan { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 0.8rem; color: var(--sky2); }
+    .price-card.featured .price-plan { color: #7dd3fc; }
+    .price-val { font-size: 2.6rem; font-weight: 900; color: var(--text); letter-spacing: -0.04em; margin-bottom: 0.3rem; }
+    .price-card.featured .price-val { color: white; }
+    .price-period { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.8rem; }
+    .price-card.featured .price-period { color: rgba(255,255,255,0.6); }
+    .price-features { list-style: none; text-align: left; margin-bottom: 2rem; }
+    .price-features li { font-size: 0.87rem; color: var(--muted); padding: 0.55rem 0; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center; gap: 8px; }
+    .price-features li::before { content: '✓'; color: var(--sky2); font-weight: 700; flex-shrink: 0; }
+    .price-card.featured .price-features li { color: rgba(255,255,255,0.75); border-color: rgba(255,255,255,0.1); }
+    .price-card.featured .price-features li::before { color: #7dd3fc; }
+    .price-btn { display: block; padding: 13px; border-radius: 50px; font-weight: 700; font-size: 0.9rem; text-decoration: none; transition: all 0.3s; }
+    .price-btn-outline { background: transparent; border: 1.5px solid rgba(14,165,233,0.3); color: var(--sky2); }
+    .price-btn-outline:hover { background: var(--sky4); }
+    .price-btn-solid { background: white; color: var(--sky3); }
+    .price-btn-solid:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+    .price-badge {
+      display: inline-block; padding: 3px 12px; border-radius: 50px; font-size: 0.72rem; font-weight: 700;
+      background: rgba(251,191,36,0.2); color: #d97706; margin-bottom: 0.8rem;
+    }
+
+    /* CTA */
+    #cta {
+      background: linear-gradient(150deg, #0a1628 0%, #0f3460 50%, #0a7abf 100%);
+      text-align: center; position: relative; overflow: hidden;
+    }
+    #cta::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 60% 55% at 50% 50%, rgba(125,211,252,0.12), transparent);
+    }
+    .cta-content { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; }
+    .cta-title { font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 900; color: white; letter-spacing: -0.035em; margin-bottom: 1rem; }
+    .cta-desc { font-size: 1.05rem; color: rgba(255,255,255,0.68); line-height: 1.88; margin-bottom: 2.5rem; }
+
+    /* FOOTER */
+    footer {
+      background: var(--dark2); padding: 2.5rem 5vw;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
+    }
+    .footer-left { display: flex; align-items: center; gap: 12px; }
+    .footer-left img { height: 32px; width: 32px; border-radius: 8px; background: rgba(255,255,255,0.1); padding: 3px; }
+    .footer-left span { font-size: 0.88rem; color: rgba(255,255,255,0.4); font-weight: 500; }
+    .footer-right { font-size: 0.78rem; color: rgba(255,255,255,0.28); }
+    .footer-right a { color: var(--sky1); text-decoration: none; }
+
+    /* REVEAL */
+    .reveal { opacity: 0; transform: translateY(32px); transition: opacity 0.8s, transform 0.8s; }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* RESPONSIVE */
+    @media (max-width: 640px) {
+      .steps { flex-direction: column; gap: 2rem; }
+      .steps::before { display: none; }
+      .hero-btns { flex-direction: column; align-items: center; }
+      .hero-btns a { width: 100%; max-width: 300px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">
+    <img src="KS_LOGO.png" alt="KS" style="height:34px;width:34px;border-radius:8px;object-fit:contain;" />
+    <span>KS Corporation · <strong>SelOn</strong></span>
+  </a>
+  <a href="index.html" class="nav-back">← 홈으로</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="orb o1"></div>
+  <div class="orb o2"></div>
+  <div class="hero-content">
+    <div class="hero-badge"><div class="badge-dot"></div> 현재 개발 중 · 베타 출시 예정</div>
+    <span class="hero-product-label">KS Corporation · SelOn</span>
+    <h1>셀러들의<br /><em>힘을 ON!</em></h1>
+    <p class="hero-desc">
+      여러 쇼핑몰에 상품을 한 번에 등록하고<br />
+      AI가 재고·주문·상세페이지를 자동으로 관리해주는<br />
+      올인원 셀러 관리 솔루션
+    </p>
+    <div class="hero-btns">
+      <a href="#solution" class="btn-white">기능 살펴보기</a>
+      <a href="#pricing" class="btn-outline">요금 보기</a>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section id="problem">
+  <div class="reveal" style="max-width:700px">
+    <div class="section-label">Problem</div>
+    <h2 class="section-title">셀러의 하루는<br />왜 이렇게 힘들까요?</h2>
+    <p class="section-desc">멀티채널 판매는 기회이지만, 반복 작업이 당신의 시간을 빼앗고 있습니다.</p>
+  </div>
+  <div class="problem-grid">
+    <div class="problem-card reveal">
+      <div class="problem-icon">😩</div>
+      <div class="problem-title">플랫폼마다 따로 등록</div>
+      <p class="problem-desc">스마트스토어, 쿠팡, 11번가… 상품 하나 올리는 데 플랫폼 수만큼 반복 작업.</p>
+    </div>
+    <div class="problem-card reveal">
+      <div class="problem-icon">📦</div>
+      <div class="problem-title">재고 불일치 사고</div>
+      <p class="problem-desc">한 곳에서 팔렸는데 다른 채널에서도 주문 들어와 품절 사고, 환불 처리로 하루 종일 소진.</p>
+    </div>
+    <div class="problem-card reveal">
+      <div class="problem-icon">📊</div>
+      <div class="problem-title">흩어진 매출 데이터</div>
+      <p class="problem-desc">채널별로 분산된 매출을 합산하려면 엑셀 정리에만 몇 시간이 걸립니다.</p>
+    </div>
+    <div class="problem-card reveal">
+      <div class="problem-icon">✍️</div>
+      <div class="problem-title">상세페이지 작성 부담</div>
+      <p class="problem-desc">잘 팔리는 상세페이지 하나 만드는 데 시간과 비용이 너무 많이 듭니다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SOLUTION -->
+<section id="solution">
+  <div class="solution-header reveal">
+    <div class="section-label">Solution</div>
+    <h2 class="section-title">셀온이 해결합니다</h2>
+    <p class="section-desc">AI가 반복 업무를 대신하고, 당신은 더 중요한 일에 집중하세요.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card reveal">
+      <div class="feature-icon">🤖</div>
+      <div class="feature-title">AI 상품 일괄 등록</div>
+      <p class="feature-desc">상품 정보를 한 번만 입력하면 AI가 각 플랫폼 규격에 맞게 자동 변환·등록합니다.</p>
+    </div>
+    <div class="feature-card reveal" style="transition-delay:.06s">
+      <div class="feature-icon">📊</div>
+      <div class="feature-title">통합 대시보드</div>
+      <p class="feature-desc">스마트스토어, 쿠팡, 11번가 등 모든 채널의 주문·재고·매출을 한 화면에서.</p>
+    </div>
+    <div class="feature-card reveal" style="transition-delay:.12s">
+      <div class="feature-icon">📦</div>
+      <div class="feature-title">실시간 재고 동기화</div>
+      <p class="feature-desc">한 채널에서 판매되면 전체 채널 재고가 즉시 자동 반영. 품절 사고 원천 차단.</p>
+    </div>
+    <div class="feature-card reveal" style="transition-delay:.18s">
+      <div class="feature-icon">✍️</div>
+      <div class="feature-title">AI 상세페이지 생성</div>
+      <p class="feature-desc">키워드만 입력하면 클릭률 높은 상세페이지 초안을 AI가 즉시 작성해드립니다.</p>
+    </div>
+    <div class="feature-card reveal" style="transition-delay:.24s">
+      <div class="feature-icon">📈</div>
+      <div class="feature-title">스마트 매출 분석</div>
+      <p class="feature-desc">채널별 수익성, 베스트셀러, 이탈 원인을 직관적인 그래프로 한눈에 파악합니다.</p>
+    </div>
+    <div class="feature-card reveal" style="transition-delay:.30s">
+      <div class="feature-icon">🔔</div>
+      <div class="feature-title">실시간 스마트 알림</div>
+      <p class="feature-desc">클레임, 문의, 재고 부족 등 중요 이벤트를 모바일로 즉시 알려드립니다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="how-header reveal">
+    <div class="section-label">How it works</div>
+    <h2 class="section-title">딱 3단계면 끝</h2>
+  </div>
+  <div class="steps">
+    <div class="step reveal">
+      <div class="step-num">1️⃣</div>
+      <div class="step-title">채널 연동</div>
+      <p class="step-desc">판매 중인 쇼핑몰 계정을 셀온에 연결합니다. 5분이면 충분합니다.</p>
+    </div>
+    <div class="step reveal" style="transition-delay:.1s">
+      <div class="step-num">2️⃣</div>
+      <div class="step-title">상품 등록</div>
+      <p class="step-desc">상품 정보를 한 번만 입력하면 AI가 전 채널에 최적화하여 자동 등록합니다.</p>
+    </div>
+    <div class="step reveal" style="transition-delay:.2s">
+      <div class="step-num">3️⃣</div>
+      <div class="step-title">AI가 관리</div>
+      <p class="step-desc">재고·주문·가격·상세페이지까지 AI가 자동으로 관리합니다. 당신은 판매에만 집중하세요.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="pricing-header reveal">
+    <div class="section-label">Pricing</div>
+    <h2 class="section-title">합리적인 요금제</h2>
+    <p class="section-desc" style="margin:0 auto">베타 기간 동안 특별 혜택을 드립니다.</p>
+  </div>
+  <div class="pricing-grid">
+    <div class="price-card reveal">
+      <div class="price-plan">스타터</div>
+      <div class="price-val">무료</div>
+      <div class="price-period">베타 기간 한정</div>
+      <ul class="price-features">
+        <li>채널 연동 최대 2개</li>
+        <li>상품 등록 월 50건</li>
+        <li>통합 대시보드</li>
+        <li>기본 매출 분석</li>
+      </ul>
+      <a href="#cta" class="price-btn price-btn-outline">무료 시작</a>
+    </div>
+    <div class="price-card featured reveal" style="transition-delay:.1s">
+      <div class="price-badge">🔥 인기</div>
+      <div class="price-plan">프로</div>
+      <div class="price-val">₩29,000</div>
+      <div class="price-period">월 · 부가세 별도</div>
+      <ul class="price-features">
+        <li>채널 연동 무제한</li>
+        <li>상품 등록 무제한</li>
+        <li>AI 상세페이지 생성</li>
+        <li>실시간 재고 동기화</li>
+        <li>스마트 알림</li>
+        <li>고급 매출 분석</li>
+      </ul>
+      <a href="#cta" class="price-btn price-btn-solid">지금 시작하기</a>
+    </div>
+    <div class="price-card reveal" style="transition-delay:.2s">
+      <div class="price-plan">엔터프라이즈</div>
+      <div class="price-val">문의</div>
+      <div class="price-period">맞춤 견적</div>
+      <ul class="price-features">
+        <li>프로 플랜 전체 포함</li>
+        <li>전용 API 연동</li>
+        <li>전담 매니저 지원</li>
+        <li>맞춤 기능 개발</li>
+      </ul>
+      <a href="index.html#contact" class="price-btn price-btn-outline">문의하기</a>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="cta-content reveal">
+    <div class="section-label" style="color:#7dd3fc;background:rgba(125,211,252,0.15)">사전 신청</div>
+    <h2 class="cta-title">베타 출시 알림을<br />가장 먼저 받아보세요</h2>
+    <p class="cta-desc">셀온 베타 사전 신청자에게는 3개월 무료 이용 혜택과 얼리버드 요금이 제공됩니다.</p>
+    <a href="index.html#contact" class="btn-white">사전 신청하기 →</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-left">
+    <img src="KS_LOGO.png" alt="KS" style="height:32px;width:32px;border-radius:8px;object-fit:contain;margin-right:10px;" />
+    <span>© 2025 KS Corporation. All rights reserved.</span>
+  </div>
+  <div class="footer-right"><a href="index.html">← KS Corporation 홈으로</a></div>
+</footer>
+
+<script>
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  document.querySelectorAll('.feature-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      card.style.transform = `translateY(-6px) rotateX(${-y*4}deg) rotateY(${x*4}deg)`;
+    });
+    card.addEventListener('mouseleave', () => card.style.transform = '');
+  });
+</script>
+</body>
+</html>
