@@ -922,11 +922,11 @@
       <div class="form-row">
         <div class="form-group">
           <label for="name">이름</label>
-          <input type="text" id="name" placeholder="홍길동" required />
+          <input type="text" id="name" placeholder="홍길동" required maxlength="100" />
         </div>
         <div class="form-group">
           <label for="email">이메일</label>
-          <input type="email" id="email" placeholder="hello@example.com" required />
+          <input type="email" id="email" placeholder="hello@example.com" required maxlength="200" />
         </div>
       </div>
       <div class="form-group">
@@ -944,8 +944,11 @@
       </div>
       <div class="form-group">
         <label for="message">메시지</label>
-        <textarea id="message" placeholder="안녕하세요! KS Corporation에 대해..." required></textarea>
+        <textarea id="message" placeholder="안녕하세요! KS Corporation에 대해..." required maxlength="5000"></textarea>
       </div>
+      <!-- 봇 차단용 honeypot (사용자에게 숨김) -->
+      <input type="text" id="hp-field" name="_hp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" aria-hidden="true" />
+      <div class="form-status" aria-live="polite" style="font-size:.88rem;margin-top:-0.4rem;min-height:1.2em"></div>
       <button type="submit" class="form-submit">메시지 보내기 →</button>
     </form>
   </div>
@@ -1055,30 +1058,59 @@
   /* ── Back to top ── */
   backtop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
-  /* ── Form submit (mailto 방식으로 contact@ks-corporation.co.kr 로 발신) ── */
-  function handleSubmit(e) {
+  /* ── Form submit (API Gateway → Lambda → SES 실제 발송) ── */
+  const CONTACT_ENDPOINT = 'https://emgs1jsqsh.execute-api.ap-northeast-2.amazonaws.com/contact';
+
+  async function handleSubmit(e) {
     e.preventDefault();
     const form = e.target;
-    const name = form.querySelector('#name').value.trim();
-    const email = form.querySelector('#email').value.trim();
-    const subject = form.querySelector('#subject').value.trim() || '문의';
-    const message = form.querySelector('#message').value.trim();
-
-    const to = 'contact@ks-corporation.co.kr';
-    const mailSubject = `[홈페이지 문의] ${subject} — ${name}`;
-    const mailBody =
-      `이름: ${name}\n` +
-      `회신 이메일: ${email}\n` +
-      `문의 유형: ${subject}\n\n` +
-      `----- 메시지 -----\n${message}\n`;
-
-    const url = `mailto:${to}?subject=${encodeURIComponent(mailSubject)}&body=${encodeURIComponent(mailBody)}`;
-    window.location.href = url;
-
     const btn = form.querySelector('.form-submit');
-    btn.textContent = '✓ 메일 앱이 열렸습니다';
-    btn.style.background = 'linear-gradient(135deg,#34d399,#059669)';
-    setTimeout(() => { btn.textContent = '메시지 보내기 →'; btn.style.background = ''; }, 4000);
+    const status = form.querySelector('.form-status');
+    const original = btn.textContent;
+
+    const payload = {
+      name: form.querySelector('#name').value.trim(),
+      email: form.querySelector('#email').value.trim(),
+      subject: form.querySelector('#subject').value.trim() || '문의',
+      message: form.querySelector('#message').value.trim(),
+      _hp: form.querySelector('#hp-field').value,
+    };
+
+    btn.disabled = true;
+    btn.textContent = '전송 중...';
+    btn.style.opacity = '0.75';
+    if (status) { status.textContent = ''; status.style.color = ''; }
+
+    try {
+      const res = await fetch(CONTACT_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) throw new Error(data.error || `HTTP_${res.status}`);
+
+      btn.textContent = '✓ 메시지가 전달되었습니다';
+      btn.style.background = 'linear-gradient(135deg,#34d399,#059669)';
+      btn.style.opacity = '1';
+      if (status) { status.textContent = '곧 회신드리겠습니다. 감사합니다.'; status.style.color = '#059669'; }
+      form.reset();
+    } catch (err) {
+      btn.textContent = '✗ 전송 실패';
+      btn.style.background = 'linear-gradient(135deg,#ef4444,#b91c1c)';
+      btn.style.opacity = '1';
+      if (status) {
+        status.textContent = '전송에 문제가 생겼습니다. contact@ks-corporation.co.kr 로 직접 보내주세요.';
+        status.style.color = '#b91c1c';
+      }
+      console.error('Contact form error:', err);
+    } finally {
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = original;
+        btn.style.background = '';
+      }, 5000);
+    }
   }
 
   /* ── Smooth anchors ── */
